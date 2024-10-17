@@ -1,5 +1,5 @@
 import { IncomingMessage, ServerResponse } from "http";
-import { userService } from "../services/userService";
+import { UserService } from "../services/userService";
 import { UserDB } from "../db";
 import { MESSAGES as message } from "../util/messages";
 import { StoredUser, User } from "../models/models";
@@ -7,7 +7,7 @@ import { StoredUser, User } from "../models/models";
 const userDB = new UserDB();
 
 export class UserController {
-  constructor(private readonly service: userService) {}
+  constructor(private readonly service: UserService) {}
 
   async handleRequest(req: IncomingMessage, res: ServerResponse) {
     const { method, url } = req;
@@ -91,9 +91,21 @@ export class UserController {
     let body = "";
     req.on("data", (chunk) => (body += chunk.toString()));
     req.on("end", () => {
-      const user = JSON.parse(body);
-      const newUser = this.service.createUser(user);
-      this.sendResponse(res, 201, newUser);
+      try {
+        const user = JSON.parse(body);
+        const newUser = this.service.createUser(user);
+        this.sendResponse(res, 201, newUser);
+      } catch (error) {
+        if (error instanceof Error) {
+          this.sendResponse(res, 400, {
+            message: error.message,
+          });
+        } else {
+          this.sendResponse(res, 400, {
+            message: "An error occurred while creating the user.",
+          });
+        }
+      }
     });
   }
 
@@ -108,9 +120,21 @@ export class UserController {
         body += chunk.toString();
       });
       req.on("end", () => {
-        const updateData = JSON.parse(body);
-        const updatedUser = this.service.updateUser(userId, updateData);
-        this.sendResponse(res, 200, updatedUser);
+        try {
+          const updateData = JSON.parse(body);
+          const updatedUser = this.service.updateUser(userId, updateData);
+          this.sendResponse(res, 200, updatedUser);
+        } catch (error) {
+          if (error instanceof Error) {
+            this.sendResponse(res, 400, {
+              message: error.message,
+            });
+          } else {
+            this.sendResponse(res, 400, {
+              message: "An error occurred while creating the user.",
+            });
+          }
+        }
       });
     } else {
       this.sendResponse(res, 400, { message: message.idRequired });
@@ -141,4 +165,4 @@ export class UserController {
 }
 
 export const userController = (req: IncomingMessage, res: ServerResponse) =>
-  new UserController(new userService(userDB)).handleRequest(req, res);
+  new UserController(new UserService(userDB)).handleRequest(req, res);

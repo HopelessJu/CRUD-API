@@ -1,12 +1,18 @@
 import http from "http";
 import { userController } from "./controllers/userController";
 import dotenv from "dotenv";
+import { startCluster } from "./cluster";
 
 dotenv.config();
-const PORT = process.env.PORT || 3000;
+const isClusterMode = process.env.USE_CLUSTER === "true";
 
-const server = http.createServer(userController);
+if (isClusterMode) {
+  startCluster();
+} else {
+  const PORT = process.env.PORT || 4000;
+  const server = http.createServer(userController);
 
-server.listen(PORT, () => {
-  console.log(`Server is running on PORT:${PORT}`);
-});
+  server.listen(PORT, () => {
+    console.log(`Server is running on PORT:${PORT}`);
+  });
+}

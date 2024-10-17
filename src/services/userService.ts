@@ -4,7 +4,7 @@ import { MESSAGES as message } from "../util/messages";
 import { StoredUser, User } from "../models/models";
 import { validateUserData } from "../util/validateData";
 
-export class userService {
+export class UserService {
   constructor(private readonly db: UserDB) {}
 
   getAllUsers(): StoredUser[] {
@@ -30,8 +30,9 @@ export class userService {
   createUser(user: User) {
     if (!validateUserData(user)) {
       throw new Error(`${message.required}`);
+    } else {
+      return this.db.createUser(user);
     }
-    return this.db.createUser(user);
   }
 
   updateUser(id: string, user: User) {
