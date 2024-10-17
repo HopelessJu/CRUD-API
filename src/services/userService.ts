@@ -42,7 +42,7 @@ export class userService {
       throw new Error(`${message.required}`);
     }
     try {
-      this.db.updateUser(id, user);
+      return this.db.updateUser(id, user);
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`${error.message}`);
@@ -53,7 +53,7 @@ export class userService {
   }
 
   deleteUser(id: string) {
-    if (!isValidUUID) {
+    if (!isValidUUID(id)) {
       throw new Error(`${message.invalidUUID}`);
     }
     try {
