@@ -1,12 +1,6 @@
 import http from "http";
 import { userController } from "../controllers/userController";
-// import { UserDB } from "../db";
-// import { UserService } from "../services/userService";
-// import { v4 as uuidv4 } from "uuid";
 import { StoredUser } from "../models/models";
-
-// const userDB = new UserDB();
-// const userService = new UserService(userDB);
 
 interface HttpResponse<T> {
   statusCode: number;
@@ -65,7 +59,6 @@ afterAll((done) => {
   server.close(done);
 });
 
-// Test scenarios
 describe("User API", () => {
   test("Get all records - expected empty array", async () => {
     const response = await request("GET", "/api/users");
