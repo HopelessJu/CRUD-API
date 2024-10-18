@@ -1,18 +1,10 @@
 import http from "http";
-import { userController, UserController } from "./controllers/userController";
+import { userController } from "./controllers/userController";
 import dotenv from "dotenv";
 import { startCluster } from "./cluster";
-import { UserDB } from "./db";
-import { SharedUserService } from "./services/sharedUserService";
-import { UserService } from "./services/userService";
 
 dotenv.config();
 const isClusterMode = process.env.USE_CLUSTER === "true";
-// const userdDB = new UserDB();
-// const userService = isClusterMode
-//   ? new SharedUserService(userdDB)
-//   : new UserService(userdDB);
-// const userController = new UserController();
 
 if (isClusterMode) {
   startCluster();

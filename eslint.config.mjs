@@ -17,7 +17,7 @@ export default [
     rules: {
       "@typescript-eslint/explicit-function-return-type": "error",
       "@typescript-eslint/no-explicit-any": "error",
-      "max-len": ["error", { code: 80 }],
+      "max-len": ["error", { code: 100 }],
       "no-unused-vars": "warn",
     },
   },

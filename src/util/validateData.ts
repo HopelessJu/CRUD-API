@@ -1,6 +1,6 @@
 import { User } from "../models/models";
 
-export const validateUserData = (user: User) => {
+export const validateUserData = (user: User): boolean => {
   if (typeof user.age !== "number" || user.age < 0) {
     return false;
   }

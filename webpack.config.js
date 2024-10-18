@@ -1,23 +1,21 @@
-const path = require("path");
+import { resolve as _resolve } from "path";
 
-module.exports = {
-  entry: "./src/index.ts",
-  target: "node",
-  output: {
-    filename: "bundle.js",
-    path: path.resolve(__dirname, "dist"),
-  },
-  resolve: {
-    extensions: [".ts", ".js"],
-  },
-  module: {
-    rules: [
-      {
-        test: /\.ts$/,
-        use: "ts-loader",
-        exclude: /node_modules/,
-      },
-    ],
-  },
-  mode: "production", // Change to 'production' for production builds
+export const entry = "./src/index.ts";
+export const target = "node";
+export const output = {
+  filename: "bundle.js",
+  path: _resolve(__dirname, "dist"),
 };
+export const resolve = {
+  extensions: [".ts", ".js"],
+};
+export const module = {
+  rules: [
+    {
+      test: /\.ts$/,
+      use: "ts-loader",
+      exclude: /node_modules/,
+    },
+  ],
+};
+export const mode = "production";

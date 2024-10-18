@@ -1,12 +1,12 @@
-import http, { ServerResponse } from "http";
+import http from "http";
 import { userController } from "../controllers/userController";
-import { UserDB } from "../db";
-import { UserService } from "../services/userService";
-import { v4 as uuidv4 } from "uuid";
-import { StoredUser, User } from "../models/models";
+// import { UserDB } from "../db";
+// import { UserService } from "../services/userService";
+// import { v4 as uuidv4 } from "uuid";
+import { StoredUser } from "../models/models";
 
-const userDB = new UserDB();
-const userService = new UserService(userDB);
+// const userDB = new UserDB();
+// const userService = new UserService(userDB);
 
 interface HttpResponse<T> {
   statusCode: number;
@@ -16,7 +16,7 @@ interface HttpResponse<T> {
 const request = (
   method: string,
   url: string,
-  data?: any
+  data?: unknown
 ): Promise<HttpResponse<StoredUser>> => {
   return new Promise((resolve, reject) => {
     const req = http.request(

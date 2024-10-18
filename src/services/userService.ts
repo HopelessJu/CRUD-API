@@ -27,7 +27,7 @@ export class UserService implements UserServiceInt {
     }
   }
 
-  createUser(user: User) {
+  createUser(user: User): StoredUser {
     if (!validateUserData(user)) {
       throw new Error(`${message.required}`);
     } else {
@@ -53,7 +53,7 @@ export class UserService implements UserServiceInt {
     }
   }
 
-  deleteUser(id: string) {
+  deleteUser(id: string): void {
     if (!isValidUUID(id)) {
       throw new Error(`${message.invalidUUID}`);
     }

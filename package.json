@@ -10,7 +10,7 @@
     "start:dev": "nodemon src/index.ts",
     "start:dev:multi": "cross-env USE_CLUSTER=true nodemon src/index.ts",
     "start:prod": "npm run build && node dist/bundle.js",
-    "start:prod:multi": "cross-env USE_CLUSTER=true npm run build && node dist/bundle.js"
+    "start:prod:multi": " npm run build && cross-env USE_CLUSTER=true node dist/bundle.js"
   },
   "repository": {
     "type": "git",

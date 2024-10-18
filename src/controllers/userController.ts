@@ -2,24 +2,20 @@ import { IncomingMessage, ServerResponse } from "http";
 import { UserService } from "../services/userService";
 import { UserDB } from "../db";
 import { MESSAGES as message } from "../util/messages";
-import { StoredUser, User, UserServiceInt } from "../models/models";
-import { SharedUserService } from "../services/sharedUserService";
-
-// const isClusterMode = process.env.USE_CLUSTER === "true";
+import { StoredUser, User } from "../models/models";
 
 const userDB = new UserDB();
-// const userService = isClusterMode
-//   ? new UserService(userDB)
-//   : new SharedUserService(userDB);
 
 export class UserController {
   constructor(private readonly service: UserService) {}
 
-  async handleRequest(req: IncomingMessage, res: ServerResponse) {
+  async handleRequest(
+    req: IncomingMessage,
+    res: ServerResponse
+  ): Promise<void> {
     const { method, url } = req;
     const segments = url?.split("/") || [];
 
-    const apiSegment = segments[1];
     const resource = segments[2];
     const userId = segments[3];
 
@@ -132,9 +128,15 @@ export class UserController {
           this.sendResponse(res, 200, updatedUser);
         } catch (error) {
           if (error instanceof Error) {
-            this.sendResponse(res, 400, {
-              message: error.message,
-            });
+            if (error.message === message.userNotFound) {
+              this.sendResponse(res, 404, {
+                message: error.message,
+              });
+            } else {
+              this.sendResponse(res, 400, {
+                message: error.message,
+              });
+            }
           } else {
             this.sendResponse(res, 400, {
               message: "An error occurred while creating the user.",
@@ -163,12 +165,15 @@ export class UserController {
   private sendResponse(
     res: ServerResponse,
     statusCode: number,
-    data: StoredUser | StoredUser[] | User | {}
-  ) {
+    data: StoredUser | StoredUser[] | User | unknown
+  ): void {
     res.writeHead(statusCode, { "Content-Type": "application/json" });
     res.end(JSON.stringify(data));
   }
 }
 
-export const userController = (req: IncomingMessage, res: ServerResponse) =>
+export const userController = (
+  req: IncomingMessage,
+  res: ServerResponse
+): Promise<void> =>
   new UserController(new UserService(userDB)).handleRequest(req, res);

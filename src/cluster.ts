@@ -1,153 +1,3 @@
-// import cluster from "cluster";
-// import http, { IncomingMessage, ServerResponse } from "http";
-// import os from "os";
-// import { userController } from "./controllers/userController";
-// import { UserDB } from "./db";
-// import { SharedUserService } from "./services/sharedUserService";
-// import { UserService } from "./services/userService";
-
-// const numCPUs = os.cpus().length; // Parallelism
-// const basePort = parseInt(process.env.PORT || "4000");
-// let currentWorker = 0;
-
-// const sharedUserDB = new UserDB();
-// const userService = new UserService(sharedUserDB);
-
-// export const startCluster = () => {
-//   if (cluster.isPrimary) {
-//     console.log(`Primary ${process.pid} is running`);
-
-//     cluster.on("message", async (worker, message) => {
-//       if (message.type === "getAllUsers") {
-//         const users = userService.getAllUsers();
-//         worker.send({ type: "getAllUsers", data: users });
-//       } else if (message.type === "getUserById") {
-//         try {
-//           const user = sharedUserDB.getUserById(message.userId);
-//           worker.send({ type: "getUserById", data: user });
-//         } catch (error) {
-//           worker.send({
-//             type: "error",
-//             data:
-//               error instanceof Error
-//                 ? error.message
-//                 : "Unknown error ocurred while getting user by Id",
-//           });
-//         }
-//       } else if (message.type === "createUser") {
-//         try {
-//           const newUser = sharedUserDB.createUser(message.user);
-//           worker.send({ type: "createUser", data: newUser });
-//         } catch (error) {
-//           worker.send({
-//             type: "error",
-//             data:
-//               error instanceof Error
-//                 ? error.message
-//                 : "Unknown error ocurred while creating new user",
-//           });
-//         }
-//       } else if (message.type === "updateUser") {
-//         try {
-//           const updatedUser = sharedUserDB.updateUser(
-//             message.userId,
-//             message.user
-//           );
-//           worker.send({ type: "updateUser", data: updatedUser });
-//         } catch (error) {
-//           worker.send({
-//             type: "error",
-//             data:
-//               error instanceof Error
-//                 ? error.message
-//                 : `Unknown error occured while updating user`,
-//           });
-//         }
-//       } else if (message.type === "deleteUser") {
-//         try {
-//           sharedUserDB.deleteUser(message.userId);
-//           worker.send({ type: "deleteUser" });
-//         } catch (error) {
-//           worker.send({
-//             type: "error",
-//             data:
-//               error instanceof Error
-//                 ? error.message
-//                 : "Unknown error occured while deleting user",
-//           });
-//         }
-//       }
-//     });
-
-//     for (let i = 1; i < numCPUs; i++) {
-//       const workerPort = basePort + i;
-//       const worker = cluster.fork({ PORT: workerPort });
-//     }
-
-//     const loadBalancer = http.createServer(
-//       (req: IncomingMessage, res: ServerResponse) => {
-//         const workerPorts = Array.from(Object.values(cluster.workers!)).map(
-//           (worker, index) => ({
-//             id: worker?.process.pid,
-//             port: basePort + index + 1,
-//           })
-//         );
-
-//         const targetPort = workerPorts[currentWorker % workerPorts.length].port;
-//         currentWorker++;
-
-//         console.log(
-//           `Load balancer forwarding request to worker on port ${targetPort}`
-//         );
-
-//         const options = {
-//           hostname: "localhost",
-//           port: targetPort,
-//           path: req.url,
-//           method: req.method,
-//           headers: req.headers,
-//         };
-
-//         const proxy = http.request(options, (workerRes) => {
-//           res.writeHead(workerRes.statusCode || 500, workerRes.headers);
-//           workerRes.pipe(res);
-//         });
-
-//         req.pipe(proxy);
-//         proxy.on("error", (err) => {
-//           console.error(
-//             `Error forwarding request to worker on port ${targetPort}`,
-//             err
-//           );
-//           res.writeHead(500);
-//           res.end("Error handling request.");
-//         });
-//       }
-//     );
-
-//     loadBalancer.listen(basePort, () => {
-//       console.log(`Load balancer is listening on PORT: ${basePort}`);
-//     });
-
-//     cluster.on("exit", (worker) => {
-//       console.log(`Worker ${worker.process.pid} died. Forking a new worker.`);
-//       cluster.fork();
-//     });
-//   } else {
-//     const port = process.env.PORT || 4000 + cluster.worker!.id;
-//     const server = http.createServer(userController);
-
-//     server.listen(port, () => {
-//       console.log(`Worker ${process.pid} is running on PORT: ${port}`);
-//     });
-
-//     server.on("request", (req: IncomingMessage) => {
-//       console.log(
-//         `Worker ${process.pid} handling request on port ${port}${req.url}`
-//       );
-//     });
-//   }
-// };
 import cluster from "cluster";
 import http, { IncomingMessage, ServerResponse } from "http";
 import os from "os";
@@ -162,7 +12,7 @@ let currentWorker = 0;
 const sharedUserDB = new UserDB();
 const userService = new UserService(sharedUserDB);
 
-export const startCluster = () => {
+export const startCluster = (): void => {
   if (cluster.isPrimary) {
     console.log(`Primary ${process.pid} is running`);
 
@@ -231,7 +81,7 @@ export const startCluster = () => {
 
     for (let i = 1; i < numCPUs; i++) {
       const workerPort = basePort + i;
-      const worker = cluster.fork({ PORT: workerPort });
+      cluster.fork({ PORT: workerPort });
     }
 
     const loadBalancer = http.createServer(
@@ -291,7 +141,7 @@ export const startCluster = () => {
       console.log(`Worker ${process.pid} is running on PORT: ${port}`);
     });
 
-    server.on("request", (req: IncomingMessage) => {
+    server.on("request", () => {
       console.log(`Worker ${process.pid} handling request on port ${port}`);
     });
   }

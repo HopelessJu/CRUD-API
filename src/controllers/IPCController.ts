@@ -1,7 +1,7 @@
 import { IncomingMessage, ServerResponse } from "http";
 import { UserService } from "../services/userService";
 import { UserDB } from "../db";
-import { MESSAGES as message } from "../util/messages";
+import { MESSAGES as message, MESSAGES } from "../util/messages";
 import {
   ProccessMessage,
   StoredUser,
@@ -15,12 +15,12 @@ const userService = new UserService(userDB);
 export class UserIPCController {
   constructor(private readonly service: UserServiceInt) {}
 
-  async handleRequest(req: IncomingMessage, res: ServerResponse) {
+  async handleRequest(
+    req: IncomingMessage,
+    res: ServerResponse
+  ): Promise<void> {
     const { method, url } = req;
     const segments = url?.split("/") || [];
-
-    const apiSegment = segments[1];
-    const resource = segments[2];
     const userId = segments[3];
 
     try {
@@ -43,7 +43,10 @@ export class UserIPCController {
             break;
 
           default:
-            this.sendResponse(res, 405, { message: message.notMethod });
+            this.sendErrorResponse(res, {
+              type: "error",
+              data: MESSAGES.notMethod,
+            });
         }
       } else {
         this.sendResponse(res, 404, { message: message.notEndPoint });
@@ -58,7 +61,6 @@ export class UserIPCController {
     res: ServerResponse
   ): Promise<void> {
     if (userId) {
-      // IPC message to get user by ID from the primary process
       process.send!({ type: "getUserById", userId });
 
       process.once(
@@ -72,7 +74,6 @@ export class UserIPCController {
         }
       );
     } else {
-      // IPC message to get all users from the primary process
       process.send!({ type: "getAllUsers" });
 
       process.once("message", (message: ProccessMessage<StoredUser[]>) => {
@@ -102,7 +103,6 @@ export class UserIPCController {
     req.on("end", () => {
       const user = JSON.parse(body);
 
-      // IPC message to create a new user
       process.send!({ type: "createUser", user });
 
       process.once(
@@ -129,7 +129,6 @@ export class UserIPCController {
       req.on("end", () => {
         const updateData = JSON.parse(body);
 
-        // IPC message to update a user
         process.send!({ type: "updateUser", userId, user: updateData });
 
         process.once(
@@ -153,7 +152,6 @@ export class UserIPCController {
     res: ServerResponse
   ): Promise<void> {
     if (userId) {
-      // IPC message to delete a user
       process.send!({ type: "deleteUser", userId });
 
       process.once("message", (message: ProccessMessage<string>) => {
@@ -172,18 +170,37 @@ export class UserIPCController {
   private sendResponse(
     res: ServerResponse,
     statusCode: number,
-    data: StoredUser | StoredUser[] | User | {}
-  ) {
+    data: StoredUser | StoredUser[] | User | unknown
+  ): void {
     res.writeHead(statusCode, { "Content-Type": "application/json" });
     res.end(JSON.stringify(data));
   }
 
-  private sendErrorResponse(res: ServerResponse, message: any) {
-    res.writeHead(500, { "Content-Type": "application/json" });
+  private sendErrorResponse(
+    res: ServerResponse,
+    message:
+      | ProccessMessage<User>
+      | ProccessMessage<string>
+      | ProccessMessage<StoredUser[]>
+  ): void {
+    let statusCode = 500;
+    if (
+      message.data === MESSAGES.userNotFound ||
+      message.data === MESSAGES.notEndPoint ||
+      message.data === MESSAGES.notMethod
+    ) {
+      statusCode = 404;
+    } else if (
+      message.data === MESSAGES.invalidUUID ||
+      message.data === MESSAGES.required
+    ) {
+      statusCode = 400;
+    }
+    res.writeHead(statusCode, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ message: message.data || "An error occurred" }));
   }
 
-  private handleError(error: unknown, res: ServerResponse) {
+  private handleError(error: unknown, res: ServerResponse): void {
     let statusCode = 500;
     if (error instanceof Error) {
       if (error.message === message.invalidUUID) {
@@ -204,5 +221,7 @@ export class UserIPCController {
   }
 }
 
-export const userIPCController = (req: IncomingMessage, res: ServerResponse) =>
-  new UserIPCController(userService).handleRequest(req, res);
+export const userIPCController = (
+  req: IncomingMessage,
+  res: ServerResponse
+): Promise<void> => new UserIPCController(userService).handleRequest(req, res);
