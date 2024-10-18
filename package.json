@@ -8,8 +8,9 @@
     "test": "jest",
     "lint": "eslint .",
     "start:dev": "nodemon src/index.ts",
-    "start:dev:multi": "cross-env USE_CLUSTER=true nodemon",
-    "start:prod": "npm run build && node dist/bundle.js"
+    "start:dev:multi": "cross-env USE_CLUSTER=true nodemon src/index.ts",
+    "start:prod": "npm run build && node dist/bundle.js",
+    "start:prod:multi": "cross-env USE_CLUSTER=true npm run build && node dist/bundle.js"
   },
   "repository": {
     "type": "git",

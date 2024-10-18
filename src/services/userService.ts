@@ -1,10 +1,10 @@
 import { UserDB } from "../db";
 import { isValidUUID } from "../util/uuidValidator";
 import { MESSAGES as message } from "../util/messages";
-import { StoredUser, User } from "../models/models";
+import { StoredUser, User, UserServiceInt } from "../models/models";
 import { validateUserData } from "../util/validateData";
 
-export class UserService {
+export class UserService implements UserServiceInt {
   constructor(private readonly db: UserDB) {}
 
   getAllUsers(): StoredUser[] {
@@ -35,7 +35,7 @@ export class UserService {
     }
   }
 
-  updateUser(id: string, user: User) {
+  updateUser(id: string, user: User): User {
     if (!isValidUUID(id)) {
       throw new Error(`${message.invalidUUID}`);
     }

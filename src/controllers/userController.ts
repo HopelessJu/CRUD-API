@@ -2,9 +2,15 @@ import { IncomingMessage, ServerResponse } from "http";
 import { UserService } from "../services/userService";
 import { UserDB } from "../db";
 import { MESSAGES as message } from "../util/messages";
-import { StoredUser, User } from "../models/models";
+import { StoredUser, User, UserServiceInt } from "../models/models";
+import { SharedUserService } from "../services/sharedUserService";
+
+// const isClusterMode = process.env.USE_CLUSTER === "true";
 
 const userDB = new UserDB();
+// const userService = isClusterMode
+//   ? new UserService(userDB)
+//   : new SharedUserService(userDB);
 
 export class UserController {
   constructor(private readonly service: UserService) {}

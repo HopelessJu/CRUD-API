@@ -5,7 +5,6 @@ import { UserService } from "../services/userService";
 import { v4 as uuidv4 } from "uuid";
 import { StoredUser, User } from "../models/models";
 
-// Initialize UserDB and UserService
 const userDB = new UserDB();
 const userService = new UserService(userDB);
 
@@ -14,7 +13,6 @@ interface HttpResponse<T> {
   body: T;
 }
 
-// Helper function to make HTTP requests
 const request = (
   method: string,
   url: string,
@@ -53,7 +51,6 @@ const request = (
   });
 };
 
-// Start a temporary server for testing
 const server = http.createServer(userController);
 let createdUserId: string;
 
@@ -78,7 +75,6 @@ describe("User API", () => {
 
   test("Create a new user - expected newly created record", async () => {
     const newUser = { username: "john_doe", age: 30, hobbies: ["reading"] };
-    userDB.createUser(newUser);
     const response = await request("POST", "/api/users", newUser);
     expect(response.statusCode).toBe(201);
     expect(response.body).toMatchObject(newUser);
@@ -115,7 +111,6 @@ describe("User API", () => {
   });
 
   test("Get deleted user by ID - expected not found response", async () => {
-    const createdUserId = userDB.getAllUsers()[0].id;
     const response = await request("GET", `/api/users/${createdUserId}`);
     expect(response.statusCode).toBe(404);
     expect(response.body).toEqual({ message: "User not found" });
