@@ -149,7 +149,20 @@ export const startCluster = (): void => {
     });
     server.on("error", (err) => {
       console.error(`Failed to start server on port ${port}: ${err.message}`);
-      process.exit(1);
+      process.exit(0);
+    });
+
+    process.on("SIGINT", () => {
+      console.log(
+        `Worker ${process.pid} received SIGTERM. Closing server gracefully...`
+      );
+
+      server.close(() => {
+        console.log(
+          `Server on port ${port} closed. Exiting process ${process.pid}`
+        );
+        process.exit(0);
+      });
     });
   }
 };
