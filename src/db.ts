@@ -1,16 +1,17 @@
 import { v4 } from "uuid";
 import { User, StoredUser } from "./models/models";
 import { MESSAGES as message } from "./util/messages";
+import { validateUserData } from "./util/userDataCheck";
+
+const users: StoredUser[] = [];
 
 export class UserDB {
-  private users: StoredUser[] = [];
-
   public getAllUsers(): StoredUser[] {
-    return this.users;
+    return users;
   }
 
   public getUserById(userId: string): StoredUser {
-    const user = this.users.find((user) => user.id === userId);
+    const user = users.find((user) => user.id === userId);
     if (!user) {
       throw new Error(message.userNotFound);
     }
@@ -18,14 +19,24 @@ export class UserDB {
   }
 
   public createUser(user: User): StoredUser {
+    const validUser = validateUserData(user);
+
+    if (!validUser) {
+      throw new Error(message.invalidFields);
+    }
     const newUser = { id: v4(), ...user };
-    this.users.push(newUser);
+    users.push(newUser);
     console.log(`${message.userCreated}`);
     return newUser;
   }
 
   public updateUser(userId: string, userUpdate: Partial<User>): User {
-    const userToUpdate = this.users.find((user) => user.id === userId);
+    const validUser = validateUserData(userUpdate);
+
+    if (!validUser) {
+      throw new Error(message.invalidFields);
+    }
+    const userToUpdate = users.find((user) => user.id === userId);
     if (!userToUpdate) {
       throw new Error(message.userNotFound);
     }
@@ -34,11 +45,11 @@ export class UserDB {
   }
 
   public deleteUser(userId: string): boolean {
-    const index = this.users.findIndex((user) => user.id === userId);
+    const index = users.findIndex((user) => user.id === userId);
     if (index === -1) {
       throw new Error(message.userNotFound);
     }
-    this.users.splice(index, 1);
+    users.splice(index, 1);
     return true;
   }
 }

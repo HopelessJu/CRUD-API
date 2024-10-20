@@ -98,7 +98,11 @@ export class UserController {
         const newUser = this.service.createUser(user);
         this.sendResponse(res, 201, newUser);
       } catch (error) {
-        if (error instanceof Error) {
+        if (error instanceof SyntaxError) {
+          this.sendResponse(res, 400, {
+            message: message.invalidJSON,
+          });
+        } else if (error instanceof Error) {
           this.sendResponse(res, 400, {
             message: error.message,
           });
@@ -131,6 +135,10 @@ export class UserController {
             if (error.message === message.userNotFound) {
               this.sendResponse(res, 404, {
                 message: error.message,
+              });
+            } else if (error instanceof SyntaxError) {
+              this.sendResponse(res, 400, {
+                message: message.invalidJSON,
               });
             } else {
               this.sendResponse(res, 400, {

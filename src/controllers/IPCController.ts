@@ -101,20 +101,32 @@ export class UserIPCController {
     let body = "";
     req.on("data", (chunk) => (body += chunk));
     req.on("end", () => {
-      const user = JSON.parse(body);
+      try {
+        const user = JSON.parse(body);
 
-      process.send!({ type: "createUser", user });
+        process.send!({ type: "createUser", user });
 
-      process.once(
-        "message",
-        (message: ProccessMessage<StoredUser> | ProccessMessage<string>) => {
-          if (message.type === "createUser") {
-            this.sendResponse(res, 201, message.data);
-          } else {
-            this.sendErrorResponse(res, message);
+        process.once(
+          "message",
+          (message: ProccessMessage<StoredUser> | ProccessMessage<string>) => {
+            if (message.type === "createUser") {
+              this.sendResponse(res, 201, message.data);
+            } else {
+              this.sendErrorResponse(res, message);
+            }
           }
+        );
+      } catch (error) {
+        if (error instanceof SyntaxError) {
+          this.sendResponse(res, 400, {
+            message: message.invalidJSON,
+          });
+        } else {
+          this.sendResponse(res, 400, {
+            message: message.unknown,
+          });
         }
-      );
+      }
     });
   }
 
@@ -127,20 +139,32 @@ export class UserIPCController {
       let body = "";
       req.on("data", (chunk) => (body += chunk.toString()));
       req.on("end", () => {
-        const updateData = JSON.parse(body);
+        try {
+          const updateData = JSON.parse(body);
 
-        process.send!({ type: "updateUser", userId, user: updateData });
+          process.send!({ type: "updateUser", userId, user: updateData });
 
-        process.once(
-          "message",
-          (message: ProccessMessage<User> | ProccessMessage<string>) => {
-            if (message.type === "updateUser") {
-              this.sendResponse(res, 200, message.data);
-            } else {
-              this.sendErrorResponse(res, message);
+          process.once(
+            "message",
+            (message: ProccessMessage<User> | ProccessMessage<string>) => {
+              if (message.type === "updateUser") {
+                this.sendResponse(res, 200, message.data);
+              } else {
+                this.sendErrorResponse(res, message);
+              }
             }
+          );
+        } catch (error) {
+          if (error instanceof SyntaxError) {
+            this.sendResponse(res, 400, {
+              message: message.invalidJSON,
+            });
+          } else {
+            this.sendResponse(res, 400, {
+              message: message.unknown,
+            });
           }
-        );
+        }
       });
     } else {
       this.sendResponse(res, 400, { message: message.idRequired });

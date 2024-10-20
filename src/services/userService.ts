@@ -30,8 +30,15 @@ export class UserService implements UserServiceInt {
   createUser(user: User): StoredUser {
     if (!validateUserData(user)) {
       throw new Error(`${message.required}`);
-    } else {
+    }
+    try {
       return this.db.createUser(user);
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`${error.message}`);
+      } else {
+        throw new Error("Unknown error occurred");
+      }
     }
   }
 

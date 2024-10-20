@@ -6,4 +6,7 @@ export const MESSAGES = {
   notEndPoint: `Endpoint doesn't exist`,
   notMethod: `Method not allowed`,
   idRequired: `User id is required`,
+  invalidFields: `User can have only those required properties: username, age, hobbies`,
+  invalidJSON: `Invalid JSON format. Please, check your input`,
+  unknown: `Unknown error occurred`,
 };

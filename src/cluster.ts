@@ -22,7 +22,7 @@ export const startCluster = (): void => {
         worker.send({ type: "getAllUsers", data: users });
       } else if (message.type === "getUserById") {
         try {
-          const user = sharedUserDB.getUserById(message.userId);
+          const user = userService.getUserById(message.userId);
           worker.send({ type: "getUserById", data: user });
         } catch (error) {
           worker.send({
@@ -35,7 +35,7 @@ export const startCluster = (): void => {
         }
       } else if (message.type === "createUser") {
         try {
-          const newUser = sharedUserDB.createUser(message.user);
+          const newUser = userService.createUser(message.user);
           worker.send({ type: "createUser", data: newUser });
         } catch (error) {
           worker.send({
@@ -65,7 +65,7 @@ export const startCluster = (): void => {
         }
       } else if (message.type === "deleteUser") {
         try {
-          sharedUserDB.deleteUser(message.userId);
+          userService.deleteUser(message.userId);
           worker.send({ type: "deleteUser" });
         } catch (error) {
           worker.send({
@@ -131,7 +131,10 @@ export const startCluster = (): void => {
 
     cluster.on("exit", (worker) => {
       console.log(`Worker ${worker.process.pid} died. Forking a new worker.`);
-      cluster.fork();
+      for (let i = 1; i < numCPUs; i++) {
+        const workerPort = basePort + i;
+        cluster.fork({ PORT: workerPort });
+      }
     });
   } else {
     const port = process.env.PORT || 4000 + cluster.worker!.id;
@@ -143,6 +146,10 @@ export const startCluster = (): void => {
 
     server.on("request", () => {
       console.log(`Worker ${process.pid} handling request on port ${port}`);
+    });
+    server.on("error", (err) => {
+      console.error(`Failed to start server on port ${port}: ${err.message}`);
+      process.exit(1);
     });
   }
 };
